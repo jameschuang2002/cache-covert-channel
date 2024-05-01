@@ -9,6 +9,7 @@
 
 #define SHARED_MEMORY_PATH "/shared_memory"
 #define SHARED_MEMORY_SIZE 4096
+#define CACHE_LINE_SIZE 64
 
 int shm_fd;
 void *shm_ptr;
@@ -42,7 +43,7 @@ void sendChar(char c)
         if (bit)
         {
             // a bit was sent by access different cache lines, each line is assumed to have 8 bytes
-            volatile char *temp = (volatile char *)(shm_ptr + 8 * i);
+            volatile char *temp = (volatile char *)(shm_ptr + CACHE_LINE_SIZE * i);
         }
     }
 }
@@ -89,7 +90,7 @@ int main(void)
         *(int *)shm_ptr = 4;
 
         sendChar(12);
-        usleep(2000);
+        usleep(1500);
         //     sendString("Hello World!");
         //     usleep(100);
     }

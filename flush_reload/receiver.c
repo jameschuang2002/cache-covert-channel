@@ -21,6 +21,7 @@
 
 #define SHARED_MEMORY_PATH "/shared_memory"
 #define SHARED_MEMORY_SIZE 4096
+#define CACHE_LINE_SIZE 64
 
 /* --------------------------------------*/
 
@@ -126,9 +127,9 @@ int main(void)
         // read a single byte using covert channel
         for (int i = 0; i < 8; i++)
         {
-            unsigned long time = probe_timing((char *)((shm_ptr + (i << 3))));
+            unsigned long time = probe_timing((char *)((shm_ptr + (i * CACHE_LINE_SIZE))));
             // printf("%lu\n", time);
-            if (time < 600)
+            if (time < 200)
                 val += 1 << i;
         }
 
