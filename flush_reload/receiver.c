@@ -73,6 +73,7 @@ unsigned long probe_timing(char *adrs)
 int shm_fd;
 void *shm_ptr;
 
+// signal handler for sigint
 void memory_cleanup(int sig)
 {
     if (munmap(shm_ptr, SHARED_MEMORY_SIZE) == -1)
@@ -98,8 +99,10 @@ int main(void)
     char *adrs[SHARED_MEMORY_SIZE];
     char str[128];
 
+    // install signal handler for ctrl + c to clean up resources
     signal(SIGINT, memory_cleanup);
 
+    // open shared memory object
     shm_fd = shm_open(SHARED_MEMORY_PATH, O_RDONLY, 0666);
     if (shm_fd == -1)
     {
@@ -107,6 +110,7 @@ int main(void)
         exit(1);
     }
 
+    // map shared memory to current proces memory
     shm_ptr = mmap(NULL, SHARED_MEMORY_SIZE, PROT_READ, MAP_SHARED, shm_fd, 0);
     if (shm_ptr == MAP_FAILED)
     {
@@ -114,15 +118,12 @@ int main(void)
         exit(1);
     }
 
-    // // clear the cache
-    // for (int i = 0; i < 8; i++)
-    // {
-    //     probe((volatile char *)((shm_ptr + (i << 3))));
-    // }
     int it = 0;
     while (1)
     {
         unsigned char val = 0;
+
+        // read a single byte using covert channel
         for (int i = 0; i < 8; i++)
         {
             unsigned long time = probe_timing((char *)((shm_ptr + (i << 3))));
@@ -130,6 +131,8 @@ int main(void)
             if (time < 600)
                 val += 1 << i;
         }
+
+        // slow down printing or analysis
         if (it % 100000 == 0)
         {
             printf("%d\n", val);
