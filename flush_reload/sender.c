@@ -1,11 +1,4 @@
-#include <fcntl.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/mman.h>
-#include <unistd.h>
-#include <string.h>
-#include <signal.h>
+#include "util.h"
 
 #define SHARED_MEMORY_PATH "/shared_memory"
 #define SHARED_MEMORY_SIZE 4096
@@ -36,6 +29,8 @@ void memory_cleanup(int sig)
 // send a single character
 void sendChar(char c)
 {
+    // char *temp;
+    // temp = (char *)(shm_ptr + CACHE_LINE_SIZE * 8);
     for (int i = 0; i < 8; i++)
     {
         int bit = c & 0x01;
@@ -43,7 +38,7 @@ void sendChar(char c)
         if (bit)
         {
             // a bit was sent by access different cache lines, each line is assumed to have 8 bytes
-            volatile char *temp = (volatile char *)(shm_ptr + CACHE_LINE_SIZE * i);
+            // temp = (char *)(shm_ptr + CACHE_LINE_SIZE * i);
         }
     }
 }
@@ -60,39 +55,12 @@ int main(void)
 {
     // signal handler for ctrl + c
     signal(SIGINT, memory_cleanup);
+    init_shared_memory(&shm_fd, &shm_ptr, 1);
 
-    // open shared memory region
-    shm_fd = shm_open(SHARED_MEMORY_PATH, O_CREAT | O_RDWR, 0666);
-    if (shm_fd == -1)
-    {
-        perror("shm_open");
-        return -1;
-    }
+    printf("This is the sender, shared memory mapped to %p\n", shm_ptr);
 
-    // truncate to the size of shared memory (assume 4 kB page)
-    if (ftruncate(shm_fd, SHARED_MEMORY_SIZE) == -1)
-    {
-        perror("ftrucate");
-        exit(1);
-    }
-
-    // map to current process memory space
-    shm_ptr = mmap(NULL, SHARED_MEMORY_SIZE, PROT_WRITE, MAP_SHARED, shm_fd, 0);
-    if (shm_ptr == MAP_FAILED)
-    {
-        perror("mmap");
-        exit(1);
-    }
-
-    // send data
     while (1)
     {
-        *(int *)shm_ptr = 4;
-
-        sendChar(12);
-        usleep(1500);
-        //     sendString("Hello World!");
-        //     usleep(100);
     }
 
     return 0;
