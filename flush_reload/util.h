@@ -24,8 +24,16 @@
 #define SHARED_MEMORY_PATH "/shared_memory"
 #define SHARED_MEMORY_SIZE 4096
 #define CACHE_LINE_SIZE 64
-#define TRANSMIT_INTERVAL 0x8000
+
+#define CHANNEL_INTERVAL 0xF000
+#define CHANNEL_SYNC_TIMEMASK 0x000FFFFF
+#define CHANNEL_SYNC_JITTER 0x0100
 
 int probe(char *adrs);
 unsigned long probe_timing(char *adrs);
 void init_shared_memory(int *shm_fd, void **shm_ptr, int sender);
+unsigned long get_time();
+void clflush(char *adrs);
+void char_to_bitarr(char c, int *bitarr);
+unsigned long cc_sync();
+char bitarr_to_char(int *bitarr);

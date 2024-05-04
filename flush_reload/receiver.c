@@ -22,9 +22,40 @@ void memory_cleanup(int sig)
     exit(EXIT_SUCCESS);
 }
 
-int value_sent()
+char getChar()
 {
-    return probe((char *)(shm_ptr + (8 * CACHE_LINE_SIZE)));
+    int miss_count[8], hit_count[8], bitarr[8];
+
+    for (int i = 0; i < 8; i++)
+    {
+        miss_count[i] = 0;
+        hit_count[i] = 0;
+    }
+
+    unsigned long startTime = cc_sync();
+    unsigned long endTime = get_time();
+    while (endTime - startTime < CHANNEL_INTERVAL)
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            if (probe((char *)(shm_ptr + CACHE_LINE_SIZE * i)))
+            {
+                hit_count[i]++;
+            }
+            else
+            {
+                miss_count[i]++;
+            }
+        }
+        endTime = get_time();
+    }
+
+    for (int i = 0; i < 8; i++)
+    {
+        bitarr[i] = miss_count[i] >= hit_count[i];
+    }
+
+    return bitarr_to_char(bitarr);
 }
 
 int main(void)
@@ -36,8 +67,15 @@ int main(void)
 
     printf("This is the receiver, shared memory is mapped to %p\n", shm_ptr);
 
+    int count = 0;
     while (1)
     {
+        char c = getChar();
+        if (count % 100 == 0)
+        {
+            printf("c: %d, %d\n", c, c == 12);
+        }
+        count++;
     }
 
     return 0;

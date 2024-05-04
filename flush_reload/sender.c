@@ -29,17 +29,22 @@ void memory_cleanup(int sig)
 // send a single character
 void sendChar(char c)
 {
-    // char *temp;
-    // temp = (char *)(shm_ptr + CACHE_LINE_SIZE * 8);
-    for (int i = 0; i < 8; i++)
+    int bitarr[8];
+    char_to_bitarr(c, bitarr);
+
+    unsigned long startTime = cc_sync();
+    unsigned long currentTime = get_time();
+
+    while (currentTime - startTime < CHANNEL_INTERVAL)
     {
-        int bit = c & 0x01;
-        c >>= 1;
-        if (bit)
+        for (int i = 0; i < 8; i++)
         {
-            // a bit was sent by access different cache lines, each line is assumed to have 8 bytes
-            // temp = (char *)(shm_ptr + CACHE_LINE_SIZE * i);
+            if (bitarr[i])
+            {
+                clflush((char *)(shm_ptr + i * CACHE_LINE_SIZE));
+            }
         }
+        currentTime = get_time();
     }
 }
 
@@ -61,6 +66,7 @@ int main(void)
 
     while (1)
     {
+        sendChar(12);
     }
 
     return 0;

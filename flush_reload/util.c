@@ -18,7 +18,7 @@ int probe(char *adrs)
         "    lfence             \n"
         "    rdtsc              \n"
         "    subl %%esi, %%eax  \n"
-        "    clflush 0(%1)      \n"
+        // "    clflush 0(%1)      \n"
         : "=a"(time)
         : "c"(adrs)
         : "%esi", "%edx");
@@ -48,6 +48,29 @@ unsigned long probe_timing(char *adrs)
 
 /* --------------------------------------- */
 
+/* from https://github.com/moehajj/Flush-Reload */
+
+void clflush(char *adrs)
+{
+    asm volatile("clflush (%0)" ::"r"(adrs));
+}
+
+unsigned long get_time()
+{
+    unsigned long time;
+    asm volatile("rdtsc" : "=a"(time));
+    return time;
+}
+
+unsigned long cc_sync()
+{
+    while ((get_time() & CHANNEL_SYNC_TIMEMASK) > CHANNEL_SYNC_JITTER)
+        ;
+    return get_time();
+}
+
+// -----------------------------------------------------
+
 void init_shared_memory(int *shm_fd, void **shm_ptr, int sender)
 {
     *shm_fd = shm_open(SHARED_MEMORY_PATH, O_CREAT | O_RDWR, 0666);
@@ -74,4 +97,24 @@ void init_shared_memory(int *shm_fd, void **shm_ptr, int sender)
         exit(1);
     }
     printf("%p\n", *shm_ptr);
+}
+
+void char_to_bitarr(char c, int *bitarr)
+{
+    for (int i = 0; i < 8; i++)
+    {
+        int bit = c & 0x01;
+        bitarr[i] = bit;
+        c >>= 1;
+    }
+}
+
+char bitarr_to_char(int *bitarr)
+{
+    char c = 0;
+    for (int i = 0; i < 8; i++)
+    {
+        c += bitarr[i] << i;
+    }
+    return c;
 }
