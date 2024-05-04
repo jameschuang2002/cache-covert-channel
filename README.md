@@ -2,8 +2,7 @@
 
 ### Idea Development
 
-Initial Idea: 
-
+**Initial Idea**
 Having two processes communicate by transmitting bytes. 8 cache lines will be used
 
 Sender process: To transmit a 1, access the corresponding cache line, otherwise do nothing
@@ -18,11 +17,20 @@ The cache is virtually indexed and physically tagged to increase efficiency. The
 
 To fix this, we will exploit the coherence protocol that invalidates all cache lines associated with the memory location being flushed. 
 
-Updated Idea (https://github.com/moehajj/Flush-Reload): 
-
+**Updated Idea V1 (https://github.com/moehajj/Flush-Reload)**
 Sender Process: To send a 1, the sender will keep flushing a location in the shared memory 
 
 Receiver Process: The receiver looks at that location for a fixed amount of time and totals the cache hits and misses. Miss more than hit (the memory location kept getting invalidated due to constant flushing), then it is a 1
+
+What's the problem with this implementation? Noise due to all bits in the byte using the same location in the cache 
+
+**Updated Idea V2 Merge Idea 1 + Idea 2**
+
+Use 8 cache lines, each representing a bit in a byte
+
+Sender: flush each cache line if the bit location of the byte is 1
+
+Receiver: try to repeatedly access all 8 cache lines, if more hits than misses, 0, else 1
 
 Question: How does flush+reload paper did it that way with just timing its own accesses and without exploiting coherence behaviour? Is it possible to implement it the way as described in the paper?
 
