@@ -76,16 +76,21 @@ int main(void)
 
     while (1)
     {
+        int errors = 0;
         char c = getChar();
         if (c == START_VALUE)
         {
             c = getChar();
             while (c != STOP_VALUE)
             {
-                printf("%c", c);
+                if (c >= PRINTABLE_ASCII_LOW && c <= PRINTABLE_ASCII_HIGH)
+                    printf("%c", c);
+                else
+                    errors++;
                 c = getChar();
             }
             printf("\n");
+            printf("string transmitted with %d clear errors\n", errors);
         }
     }
 

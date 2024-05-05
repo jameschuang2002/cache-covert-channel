@@ -32,6 +32,8 @@
 #define START_VALUE 2
 #define STOP_VALUE 3
 #define NUM_RESENDS 80
+#define PRINTABLE_ASCII_LOW 32
+#define PRINTABLE_ASCII_HIGH 126
 
 int probe(char *adrs);
 unsigned long probe_timing(char *adrs);

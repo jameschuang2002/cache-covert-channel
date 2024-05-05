@@ -99,7 +99,6 @@ int main(void)
             while (fscanf(inFile, "%c", &file_char) != EOF)
             {
                 sendChar(file_char);
-                printf("%c\n", file_char);
             }
             sendChar(STOP_VALUE);
             printf("File successfully transmitted\n");
