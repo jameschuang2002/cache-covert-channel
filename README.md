@@ -1,5 +1,23 @@
 # Flush + Reload
 
+### How to Run the Code
+Prerequisite: A linux environment (e.g. Windows Subsystem for Linux, Ubuntu)
+
+1. Prepare 2 terminals 
+2. Execute the following command
+```
+cd flush_reload
+make
+```
+3. Run the sender process
+```
+./sender
+```
+4. Run the receiver process
+```
+./receiver
+```
+
 ### Project Desciption
 
 This project provides a simple interface for covert communication between two processes. There are two modes of operation: text mode and file mode. 
