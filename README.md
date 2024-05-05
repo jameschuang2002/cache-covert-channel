@@ -70,6 +70,10 @@ NUM_RESENDS: The same will be repeated and then the most common value being rece
 
 CHANNEL_INTERVAL: The interval which the flushing will continue. The longer the channel interval, the less noise because the number of misses will less likely be greater than the number of hits. 
 
+### Future Directions 
+1. Further explore parameters that controls noise and bandwidth
+2. Integrate with python to autocorrect english texts sent through the covert channel
+
 ### Questions
 1. How does flush+reload paper did it that way with just timing its own accesses and without exploiting coherence behaviour? 
 2. Is it possible to implement it the way as described in the paper?

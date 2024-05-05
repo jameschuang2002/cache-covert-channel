@@ -1,5 +1,7 @@
 #include "util.h"
 
+#define SQUIRRELS_FILE "../passwords/squirrels.txt"
+
 int shm_fd;
 void *shm_ptr;
 
@@ -31,11 +33,6 @@ void sendChar(char c)
     // resend for receiver to implement voting to minimize noise
     for (int i = 0; i < NUM_RESENDS; i++)
     {
-        /* clear all relevant memory lines before resending */
-        // for (int j = 0; j < 8; j++)
-        // {
-        //     clflush((char *)(shm_ptr + j * CACHE_LINE_SIZE));
-        // }
         unsigned long startTime = cc_sync();
         unsigned long currentTime = get_time();
         while (currentTime - startTime < CHANNEL_INTERVAL)
@@ -69,15 +66,44 @@ int main(void)
     printf("This is the sender, shared memory mapped to %p\n", shm_ptr);
 
     char input_str[128];
+    int opmode;
 
     while (1)
     {
-        printf("Enter the string to be sent: ");
-        scanf("%s", input_str);
+        printf("Enter the mode (1 or 2) of operation to be sent (1. file mode 2. text mode): ");
+        scanf("%d", &opmode);
         printf("\n");
-        sendChar(START_VALUE);
-        sendString(input_str);
-        sendChar(STOP_VALUE);
+
+        if (opmode == 2)
+        {
+            while (1)
+            {
+                printf("Enter the string to be sent: ");
+                scanf("%s", input_str);
+                if (strcmp(input_str, "exit()") == 0)
+                    break;
+                printf("\n");
+                sendChar(START_VALUE);
+                sendString(input_str);
+                sendChar(STOP_VALUE);
+            }
+        }
+        else if (opmode == 1)
+        {
+            printf("Transmitting file..........\n");
+            FILE *inFile = fopen(SQUIRRELS_FILE, "r");
+
+            char file_char;
+
+            sendChar(START_VALUE);
+            while (fscanf(inFile, "%c", &file_char) != EOF)
+            {
+                sendChar(file_char);
+                printf("%c\n", file_char);
+            }
+            sendChar(STOP_VALUE);
+            printf("File successfully transmitted\n");
+        }
     }
 
     return 0;
