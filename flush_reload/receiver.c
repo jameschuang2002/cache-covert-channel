@@ -25,37 +25,44 @@ void memory_cleanup(int sig)
 char getChar()
 {
     int miss_count[8], hit_count[8], bitarr[8];
+    char results[NUM_RESENDS];
 
-    for (int i = 0; i < 8; i++)
+    for (int j = 0; j < NUM_RESENDS; j++)
     {
-        miss_count[i] = 0;
-        hit_count[i] = 0;
-    }
 
-    unsigned long startTime = cc_sync();
-    unsigned long endTime = get_time();
-    while (endTime - startTime < CHANNEL_INTERVAL)
-    {
         for (int i = 0; i < 8; i++)
         {
-            if (probe((char *)(shm_ptr + CACHE_LINE_SIZE * i)))
-            {
-                hit_count[i]++;
-            }
-            else
-            {
-                miss_count[i]++;
-            }
+            miss_count[i] = 0;
+            hit_count[i] = 0;
+            clflush((char *)(shm_ptr + CACHE_LINE_SIZE * i));
         }
-        endTime = get_time();
+
+        unsigned long startTime = cc_sync();
+        unsigned long endTime = get_time();
+        while (endTime - startTime < CHANNEL_INTERVAL)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                if (probe((char *)(shm_ptr + CACHE_LINE_SIZE * i)))
+                {
+                    hit_count[i]++;
+                }
+                else
+                {
+                    miss_count[i]++;
+                }
+            }
+            endTime = get_time();
+        }
+
+        for (int i = 0; i < 8; i++)
+        {
+            bitarr[i] = miss_count[i] >= hit_count[i];
+        }
+        results[j] = bitarr_to_char(bitarr);
     }
 
-    for (int i = 0; i < 8; i++)
-    {
-        bitarr[i] = miss_count[i] >= hit_count[i];
-    }
-
-    return bitarr_to_char(bitarr);
+    return majority(results);
 }
 
 int main(void)
@@ -67,15 +74,19 @@ int main(void)
 
     printf("This is the receiver, shared memory is mapped to %p\n", shm_ptr);
 
-    int count = 0;
     while (1)
     {
         char c = getChar();
-        if (count % 100 == 0)
+        if (c == START_VALUE)
         {
-            printf("c: %d, %d\n", c, c == 12);
+            c = getChar();
+            while (c != STOP_VALUE)
+            {
+                printf("%c", c);
+                c = getChar();
+            }
+            printf("\n");
         }
-        count++;
     }
 
     return 0;

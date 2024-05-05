@@ -118,3 +118,38 @@ char bitarr_to_char(int *bitarr)
     }
     return c;
 }
+
+char majority(char *list)
+{
+    struct char_counter counter[NUM_RESENDS];
+    int length = 0;
+    for (int i = 0; i < NUM_RESENDS; i++)
+    {
+        bool isNew = true;
+        for (int j = 0; j < length; j++)
+        {
+            if (list[i] == counter[j].c)
+            {
+                counter[j].count++;
+                isNew = false;
+            }
+        }
+        if (isNew)
+        {
+            counter[length].count = 1;
+            counter[length].c = list[i];
+            length++;
+        }
+    }
+
+    struct char_counter max_count_char = counter[0];
+    for (int i = 0; i < length; i++)
+    {
+        if (counter[i].count > max_count_char.count)
+        {
+            max_count_char.count = counter[i].count;
+            max_count_char.c = counter[i].c;
+        }
+    }
+    return max_count_char.c;
+}

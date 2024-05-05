@@ -1,9 +1,5 @@
 #include "util.h"
 
-#define SHARED_MEMORY_PATH "/shared_memory"
-#define SHARED_MEMORY_SIZE 4096
-#define CACHE_LINE_SIZE 64
-
 int shm_fd;
 void *shm_ptr;
 
@@ -32,19 +28,27 @@ void sendChar(char c)
     int bitarr[8];
     char_to_bitarr(c, bitarr);
 
-    unsigned long startTime = cc_sync();
-    unsigned long currentTime = get_time();
-
-    while (currentTime - startTime < CHANNEL_INTERVAL)
+    // resend for receiver to implement voting to minimize noise
+    for (int i = 0; i < NUM_RESENDS; i++)
     {
-        for (int i = 0; i < 8; i++)
+        /* clear all relevant memory lines before resending */
+        // for (int j = 0; j < 8; j++)
+        // {
+        //     clflush((char *)(shm_ptr + j * CACHE_LINE_SIZE));
+        // }
+        unsigned long startTime = cc_sync();
+        unsigned long currentTime = get_time();
+        while (currentTime - startTime < CHANNEL_INTERVAL)
         {
-            if (bitarr[i])
+            for (int j = 0; j < 8; j++)
             {
-                clflush((char *)(shm_ptr + i * CACHE_LINE_SIZE));
+                if (bitarr[j])
+                {
+                    clflush((char *)(shm_ptr + j * CACHE_LINE_SIZE));
+                }
             }
+            currentTime = get_time();
         }
-        currentTime = get_time();
     }
 }
 
@@ -64,9 +68,16 @@ int main(void)
 
     printf("This is the sender, shared memory mapped to %p\n", shm_ptr);
 
+    char input_str[128];
+
     while (1)
     {
-        sendChar(12);
+        printf("Enter the string to be sent: ");
+        scanf("%s", input_str);
+        printf("\n");
+        sendChar(START_VALUE);
+        sendString(input_str);
+        sendChar(STOP_VALUE);
     }
 
     return 0;

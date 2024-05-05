@@ -25,9 +25,13 @@
 #define SHARED_MEMORY_SIZE 4096
 #define CACHE_LINE_SIZE 64
 
-#define CHANNEL_INTERVAL 0xF000
+#define CHANNEL_INTERVAL 0x10000
 #define CHANNEL_SYNC_TIMEMASK 0x000FFFFF
 #define CHANNEL_SYNC_JITTER 0x0100
+
+#define START_VALUE 2
+#define STOP_VALUE 3
+#define NUM_RESENDS 80
 
 int probe(char *adrs);
 unsigned long probe_timing(char *adrs);
@@ -37,3 +41,10 @@ void clflush(char *adrs);
 void char_to_bitarr(char c, int *bitarr);
 unsigned long cc_sync();
 char bitarr_to_char(int *bitarr);
+char majority(char *list);
+
+struct char_counter
+{
+    char c;
+    int count;
+};
