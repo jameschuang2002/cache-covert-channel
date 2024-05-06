@@ -24,36 +24,11 @@ void memory_cleanup(int sig)
     exit(EXIT_SUCCESS);
 }
 
-// send a single character
-void sendChar(char c)
-{
-    int bitarr[8];
-    char_to_bitarr(c, bitarr);
-
-    // resend for receiver to implement voting to minimize noise
-    for (int i = 0; i < NUM_RESENDS; i++)
-    {
-        unsigned long startTime = cc_sync();
-        unsigned long currentTime = get_time();
-        while (currentTime - startTime < CHANNEL_INTERVAL)
-        {
-            for (int j = 0; j < 8; j++)
-            {
-                if (bitarr[j])
-                {
-                    clflush((char *)(shm_ptr + j * CACHE_LINE_SIZE));
-                }
-            }
-            currentTime = get_time();
-        }
-    }
-}
-
 void sendString(char *str)
 {
     for (int i = 0; i < strlen(str); i++)
     {
-        sendChar(str[i]);
+        sendChar(str[i], shm_ptr);
     }
 }
 
@@ -83,9 +58,9 @@ int main(void)
                 if (strcmp(input_str, "exit()") == 0)
                     break;
                 printf("\n");
-                sendChar(START_VALUE);
+                sendChar(START_VALUE, shm_ptr);
                 sendString(input_str);
-                sendChar(STOP_VALUE);
+                sendChar(STOP_VALUE, shm_ptr);
             }
         }
         else if (opmode == 1)
@@ -95,12 +70,12 @@ int main(void)
 
             char file_char;
 
-            sendChar(START_VALUE);
+            sendChar(START_VALUE, shm_ptr);
             while (fscanf(inFile, "%c", &file_char) != EOF)
             {
-                sendChar(file_char);
+                sendChar(file_char, shm_ptr);
             }
-            sendChar(STOP_VALUE);
+            sendChar(STOP_VALUE, shm_ptr);
             printf("File successfully transmitted\n");
         }
     }

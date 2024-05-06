@@ -22,49 +22,6 @@ void memory_cleanup(int sig)
     exit(EXIT_SUCCESS);
 }
 
-char getChar()
-{
-    int miss_count[8], hit_count[8], bitarr[8];
-    char results[NUM_RESENDS];
-
-    for (int j = 0; j < NUM_RESENDS; j++)
-    {
-
-        for (int i = 0; i < 8; i++)
-        {
-            miss_count[i] = 0;
-            hit_count[i] = 0;
-            clflush((char *)(shm_ptr + CACHE_LINE_SIZE * i));
-        }
-
-        unsigned long startTime = cc_sync();
-        unsigned long endTime = get_time();
-        while (endTime - startTime < CHANNEL_INTERVAL)
-        {
-            for (int i = 0; i < 8; i++)
-            {
-                if (probe((char *)(shm_ptr + CACHE_LINE_SIZE * i)))
-                {
-                    hit_count[i]++;
-                }
-                else
-                {
-                    miss_count[i]++;
-                }
-            }
-            endTime = get_time();
-        }
-
-        for (int i = 0; i < 8; i++)
-        {
-            bitarr[i] = miss_count[i] >= hit_count[i];
-        }
-        results[j] = bitarr_to_char(bitarr);
-    }
-
-    return majority(results);
-}
-
 int main(void)
 {
     // install signal handler for ctrl + c to clean up resources
@@ -77,17 +34,17 @@ int main(void)
     while (1)
     {
         int errors = 0;
-        char c = getChar();
+        char c = getChar(shm_ptr);
         if (c == START_VALUE)
         {
-            c = getChar();
+            c = getChar(shm_ptr);
             while (c != STOP_VALUE)
             {
                 if (c >= PRINTABLE_ASCII_LOW && c <= PRINTABLE_ASCII_HIGH)
                     printf("%c", c);
                 else
                     errors++;
-                c = getChar();
+                c = getChar(shm_ptr);
             }
             printf("\n");
             printf("string transmitted with %d clear errors\n", errors);

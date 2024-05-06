@@ -58,8 +58,16 @@ void clflush(char *adrs)
 unsigned long get_time()
 {
     unsigned long time;
-    asm volatile("rdtsc" : "=a"(time));
+    asm volatile(
+        "lfence \n"
+        "rdtsc \n"
+        : "=a"(time));
     return time;
+}
+
+void mfence()
+{
+    asm volatile("mfence");
 }
 
 unsigned long cc_sync()
@@ -152,4 +160,87 @@ char majority(char *list)
         }
     }
     return max_count_char.c;
+}
+
+char getChar(void *shm_ptr)
+{
+    int miss_count[8], hit_count[8], bitarr[8];
+    char results[NUM_RESENDS];
+
+    for (int j = 0; j < NUM_RESENDS; j++)
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            miss_count[i] = 0;
+            hit_count[i] = 0;
+            clflush((char *)(shm_ptr + i * CACHE_LINE_SIZE));
+        }
+
+        mfence();
+        unsigned long startTime = cc_sync();
+        unsigned long endTime = get_time();
+        while (endTime - startTime < CHANNEL_INTERVAL)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                if (probe((char *)(shm_ptr + CACHE_LINE_SIZE * i)))
+                {
+                    hit_count[i]++;
+                }
+                else
+                {
+                    miss_count[i]++;
+                }
+            }
+            endTime = get_time();
+        }
+
+        for (int i = 0; i < 8; i++)
+        {
+            bitarr[i] = miss_count[i] >= hit_count[i];
+        }
+        results[j] = bitarr_to_char(bitarr);
+    }
+
+    char out_char = majority(results);
+    return out_char;
+}
+
+// send a single character
+void sendChar(char c, void *shm_ptr)
+{
+    int bitarr[8];
+    char_to_bitarr(c, bitarr);
+
+    // resend for receiver to implement voting to minimize noise
+    for (int i = 0; i < NUM_RESENDS; i++)
+    {
+        waitCycles(300);
+        mfence();
+        unsigned long startTime = cc_sync();
+        unsigned long currentTime = get_time();
+        while (currentTime - startTime < CHANNEL_INTERVAL)
+        {
+            for (int j = 0; j < 8; j++)
+            {
+                if (bitarr[j])
+                {
+                    clflush((char *)(shm_ptr + j * CACHE_LINE_SIZE));
+                }
+            }
+            currentTime = get_time();
+        }
+        waitCycles(300);
+    }
+    waitCycles(6000);
+}
+
+void waitCycles(unsigned long cycles)
+{
+    unsigned long start = get_time();
+    unsigned long currentTime = get_time();
+    while (currentTime - start < cycles)
+    {
+        currentTime = get_time();
+    }
 }

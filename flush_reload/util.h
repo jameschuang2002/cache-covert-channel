@@ -26,7 +26,7 @@
 #define CACHE_LINE_SIZE 64
 
 #define CHANNEL_INTERVAL 0x10000
-#define CHANNEL_SYNC_TIMEMASK 0x000FFFFF
+#define CHANNEL_SYNC_TIMEMASK 0x001FFFFF
 #define CHANNEL_SYNC_JITTER 0x0100
 
 #define START_VALUE 2
@@ -34,6 +34,7 @@
 #define NUM_RESENDS 80
 #define PRINTABLE_ASCII_LOW 32
 #define PRINTABLE_ASCII_HIGH 126
+#define ACK 6
 
 int probe(char *adrs);
 unsigned long probe_timing(char *adrs);
@@ -44,6 +45,10 @@ void char_to_bitarr(char c, int *bitarr);
 unsigned long cc_sync();
 char bitarr_to_char(int *bitarr);
 char majority(char *list);
+void mfence();
+char getChar(void *shm_ptr);
+void sendChar(char c, void *shm_ptr);
+void waitCycles(unsigned long cycles);
 
 struct char_counter
 {
