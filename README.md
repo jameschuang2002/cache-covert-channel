@@ -78,6 +78,9 @@ CHANNEL_INTERVAL: The interval which the flushing will continue. The longer the 
 1. How does flush+reload paper did it that way with just timing its own accesses and without exploiting coherence behaviour? 
 2. Is it possible to implement it the way as described in the paper?
 
+### Known Issues 
+1. Software processing of data is too slow and undeterministic and will affect synchronization between the two processes. 
+
 ### References
 The project is for educational and learning purposes. Great thanks to the following sources for inspiration to idea and implementation.  
 1. A High Resolution, Low Noise, L3 Cache Side-Channel Attack: https://github.com/DanGe42/flush-reload
