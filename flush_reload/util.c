@@ -232,7 +232,7 @@ void sendChar(char c, void *shm_ptr)
         }
         waitCycles(300);
     }
-    waitCycles(6000);
+    waitCycles(7000);
 }
 
 void waitCycles(unsigned long cycles)
