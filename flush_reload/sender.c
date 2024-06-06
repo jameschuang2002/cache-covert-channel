@@ -73,6 +73,7 @@ int main(void)
             sendChar(START_VALUE, shm_ptr);
             while (fscanf(inFile, "%c", &file_char) != EOF)
             {
+                printf("%c", file_char);
                 sendChar(file_char, shm_ptr);
             }
             sendChar(STOP_VALUE, shm_ptr);

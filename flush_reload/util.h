@@ -33,7 +33,7 @@
 #define STOP_VALUE 3
 #define NUM_RESENDS 80
 #define PRINTABLE_ASCII_LOW 32
-#define PRINTABLE_ASCII_HIGH 126
+#define PRINTABLE_ASCII_HIGH 128
 #define ACK 6
 
 int probe(char *adrs);
