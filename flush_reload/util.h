@@ -25,9 +25,9 @@
 #define SHARED_MEMORY_SIZE 4096
 #define CACHE_LINE_SIZE 64
 
-#define CHANNEL_INTERVAL 0x10000
-#define CHANNEL_SYNC_TIMEMASK 0x000FFFFF
-#define CHANNEL_SYNC_JITTER 0x1000
+#define CHANNEL_INTERVAL 0xBD00        // Regular interval between transmissions (in cycles), adjusted to accommodate 2000 cycle MOE
+#define CHANNEL_SYNC_TIMEMASK 0x00FFFF // Adjusted to ensure synchronization time slot falls within the 20000 cycle interval
+#define CHANNEL_SYNC_JITTER 0x2E20     // Additional jitter range to accommodate the 3000 cycle MOE every 100 transmissions
 
 #define START_VALUE 2
 #define STOP_VALUE 3
@@ -43,8 +43,8 @@ unsigned long get_time();
 void clflush(char *adrs);
 void char_to_bitarr(char c, int *bitarr);
 unsigned long cc_sync();
-char bitarr_to_char(int *bitarr);
-char majority(char *list);
+unsigned char bitarr_to_char(int *bitarr);
+char majority(unsigned char *list);
 void mfence();
 char getChar(void *shm_ptr);
 void sendChar(char c, void *shm_ptr);

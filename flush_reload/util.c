@@ -1,4 +1,5 @@
 #include "util.h"
+#define NUM_CHARS 256
 
 /* --------------------------------------*/
 
@@ -117,9 +118,9 @@ void char_to_bitarr(char c, int *bitarr)
     }
 }
 
-char bitarr_to_char(int *bitarr)
+unsigned char bitarr_to_char(int *bitarr)
 {
-    char c = 0;
+    unsigned char c = 0;
     for (int i = 0; i < 8; i++)
     {
         c += bitarr[i] << i;
@@ -127,45 +128,31 @@ char bitarr_to_char(int *bitarr)
     return c;
 }
 
-char majority(char *list)
+char majority(unsigned char *list)
 {
-    struct char_counter counter[NUM_RESENDS];
-    int length = 0;
+    int count[NUM_CHARS] = {0};
     for (int i = 0; i < NUM_RESENDS; i++)
     {
-        bool isNew = true;
-        for (int j = 0; j < length; j++)
-        {
-            if (list[i] == counter[j].c)
-            {
-                counter[j].count++;
-                isNew = false;
-            }
-        }
-        if (isNew)
-        {
-            counter[length].count = 1;
-            counter[length].c = list[i];
-            length++;
-        }
+        count[(int)(list[i])]++;
     }
 
-    struct char_counter max_count_char = counter[0];
-    for (int i = 0; i < length; i++)
+    int max_count = 0;
+    char c = 0;
+    for (int i = 0; i < NUM_CHARS; i++)
     {
-        if (counter[i].count > max_count_char.count)
+        if (count[i] > max_count)
         {
-            max_count_char.count = counter[i].count;
-            max_count_char.c = counter[i].c;
+            max_count = count[i];
+            c = i;
         }
     }
-    return max_count_char.c;
+    return c;
 }
 
 char getChar(void *shm_ptr)
 {
     int miss_count[8], hit_count[8], bitarr[8];
-    char results[NUM_RESENDS];
+    unsigned char results[NUM_RESENDS];
 
     for (int j = 0; j < NUM_RESENDS; j++)
     {
@@ -215,7 +202,6 @@ void sendChar(char c, void *shm_ptr)
     // resend for receiver to implement voting to minimize noise
     for (int i = 0; i < NUM_RESENDS; i++)
     {
-        waitCycles(300);
         mfence();
         unsigned long startTime = cc_sync();
         unsigned long currentTime = get_time();
@@ -230,7 +216,6 @@ void sendChar(char c, void *shm_ptr)
             }
             currentTime = get_time();
         }
-        waitCycles(300);
     }
     waitCycles(6000);
 }
