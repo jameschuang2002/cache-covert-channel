@@ -82,21 +82,11 @@ unsigned long cc_sync()
 
 void init_shared_memory(int *shm_fd, void **shm_ptr, int sender)
 {
-    *shm_fd = shm_open(SHARED_MEMORY_PATH, O_CREAT | O_RDWR, 0666);
+    *shm_fd = open(SHARED_MEMORY_PATH, O_RDONLY);
     if (*shm_fd == -1)
     {
         perror("shm_open");
         exit(1);
-    }
-    if (sender)
-    {
-
-        // truncate to the size of shared memory (assume 4 kB page)
-        if (ftruncate(*shm_fd, SHARED_MEMORY_SIZE) == -1)
-        {
-            perror("ftruncate");
-            exit(1);
-        }
     }
     // map to current process memory space
     *shm_ptr = mmap(NULL, SHARED_MEMORY_SIZE, PROT_READ, MAP_SHARED, *shm_fd, 0);
@@ -160,7 +150,7 @@ char getChar(void *shm_ptr)
         {
             miss_count[i] = 0;
             hit_count[i] = 0;
-            clflush((char *)(shm_ptr + i * CACHE_LINE_SIZE));
+            *(char *)(shm_ptr + i * CACHE_LINE_SIZE);
         }
 
         mfence();

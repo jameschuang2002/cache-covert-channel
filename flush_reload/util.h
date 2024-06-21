@@ -21,7 +21,7 @@
 // Number of time slots to record
 #define TIME_SLOTS 50000
 
-#define SHARED_MEMORY_PATH "/shared_memory"
+#define SHARED_MEMORY_PATH "/bin/ls"
 #define SHARED_MEMORY_SIZE 4096
 #define CACHE_LINE_SIZE 64
 
