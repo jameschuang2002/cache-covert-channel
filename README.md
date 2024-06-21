@@ -70,16 +70,11 @@ NUM_RESENDS: The same will be repeated and then the most common value being rece
 
 CHANNEL_INTERVAL: The interval which the flushing will continue. The longer the channel interval, the less noise because the number of misses will less likely be greater than the number of hits. 
 
-### Future Directions 
-1. Further explore parameters that controls noise and bandwidth
-2. Integrate with python to autocorrect english texts sent through the covert channel
-
 ### Questions
 1. How does flush+reload paper did it that way with just timing its own accesses and without exploiting coherence behaviour? 
-2. Is it possible to implement it the way as described in the paper?
 
-### Known Issues 
-1. Software processing of data is too slow and undeterministic and will affect synchronization between the two processes. 
+### Observation 
+1. When battery is low, the cache covert channel for somehow does not work properly. I assume it is based on some optimizations to prevent overusing battery power to flush caches. 
 
 ### References
 The project is for educational and learning purposes. Great thanks to the following sources for inspiration to idea and implementation.  
